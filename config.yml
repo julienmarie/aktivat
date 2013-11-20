@@ -1,0 +1,67 @@
+general:
+  urls:
+    api_url: "/api"
+    tracker_url: "/track/it"
+    trackr_ws: "/track/ws"
+    admin_ws: "/admin/ws"
+    port : 80
+redis:
+  main :
+    - master:
+        host: "127.0.0.1"
+        port: 6379
+        database : 0
+        pass: nil
+        reconnect : 50
+  indexes :
+    - master:
+        host: "127.0.0.1"
+        port: 6379
+        database : 0
+        pass: nil
+        reconnect : 50
+      slave: 
+        host: "127.0.0.1"
+        port: 6379
+        database : 0
+        pass: nil
+        reconnect : 50
+  bits :
+    - master:
+        host: "127.0.0.1"
+        port: 6379
+        database : 0
+        pass: nil
+        reconnect : 50
+      slave: 
+        host: "127.0.0.1"
+        port: 6379
+        database : 0
+        pass: nil
+        reconnect : 50
+  counters :
+    - master:
+        host: "127.0.0.1"
+        port: 6379
+        database : 0
+        pass: nil
+        reconnect : 50
+      slave: 
+        host: "127.0.0.1"
+        port: 6379
+        database : 0
+        pass: nil
+        reconnect : 50
+
+sentry_reporting:
+  enabled: true
+  error_loger: true
+  included_applications:
+    - trackr
+    - cowboy
+    - tirexs
+  public_key: "de690edad7b944b096c1193d607d5e5d"
+  private_key: "90c9d30e4f9147c3bd7df3dfe9ccdafc"
+  project: "2"
+  uri: 'http://sentry.dev.producture.com/'
+

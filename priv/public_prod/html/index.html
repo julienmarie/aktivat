@@ -1,0 +1,88 @@
+<html>
+<head>
+<script>
+window.trackrloadstart = new Date().getTime();
+</script>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+</head>
+<body>
+<a style="display : block; background : #ccc; width : 300px; height : 300px; margin : 40px"
+  data-trackr-label="test"
+  data-trackr-position="page"
+  data-trackr-type="div"
+  class="trackit"
+>
+
+</a>
+<input type="text" data-trackr-label="text"
+  data-trackr-position="page"
+  data-trackr-type="input"
+  class="trackit">
+
+ <p><input type="checkbox" checked="yes" id="enable_best"></input>
+                Current time (best source): <span id="time_best">unknown</span>
+                <span></span><span id="status_best">unknown</span>
+                <button id="send_best">Send Time</button></p>
+
+
+
+        <script type="text/javascript">
+
+$(document).ready(function(){
+        var start = function(name, options) {
+                var bullet;
+                var open = function(){
+                        bullet = $.bullet('ws://aktivat.io/track/ws', options);
+                        bullet.onopen = function(){
+                                $('#status_' + name).text('online');
+                        };
+                        bullet.onclose = bullet.ondisconnect = function(){
+                                $('#status_' + name).text('offline');
+                        };
+                        bullet.onmessage = function(e){
+                                if (e.data != 'pong'){
+                                        $('#time_' + name).text(e.data);
+                                }
+                        };
+                        bullet.onheartbeat = function(){
+                                console.log('ping: ' + name);
+                                bullet.send('ping: ' + name);
+                        };
+                }
+                open();
+                $('#enable_' + name).on('change', function(){
+                        if (this.checked){
+                                open();
+                        } else{
+                                bullet.close();
+                                bullet = null;
+                        }
+                });
+                $('#send_' + name).on('click', function(){
+                        if (bullet) {        
+                                bullet.send('time: ' + name + ' '
+                                        + $('#time_' + name).text());
+                        }
+                });
+        };
+
+        start('best', {});
+
+});
+
+        </script>
+
+
+<script>
+var o = {
+  account:"master",
+  trackrClass:".trackit",
+  serverUrl:"http://aktivat.io"
+};
+var r,s,t;r=false;s=document.createElement("script");s.type="text/javascript";s.src=o.serverUrl+"/js/trackr.js";s.onload=s.onreadystatechange=function(){if(!r&&(!this.readyState||this.readyState==="complete")){r=true;return window.trackr=new window.Trackr(o)}};t=document.getElementsByTagName("head")[0];t.appendChild(s)
+
+</script>
+
+<script src="http://aktivat.io/js/bullet.js"></script>
+</body>
+</html>

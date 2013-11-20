@@ -1,0 +1,8 @@
+body{font-family:ProximaNovaRegular;font-size:12px;line-height:18px}
+.top{height:50px;position:absolute;top:0;width:100%;border-radius:0 5px 0 0}
+#appmenu{width:82px;position:fixed;left:0;top:0;bottom:0;border-radius:0 5px 5px 0;background:#3c4753;background-image:-o-linear-gradient(0,#2f3741 100%,#3c4753 0%);background-image:-moz-linear-gradient(0,#2f3741 100%,#3c4753 0%);background-image:-webkit-linear-gradient(0,#2f3741 100%,#3c4753 0%);background-image:-ms-linear-gradient(0,#2f3741 100%,#3c4753 0%);background-image:linear-gradient(-90deg,#2f3741 100%,#3c4753 0%);-webkit-box-shadow:0 0 4px 0 rgba(0,0,0,0.5);-moz-box-shadow:0 0 4px 0 rgba(0,0,0,0.5);-ms-box-shadow:0 0 4px 0 rgba(0,0,0,0.5);-o-box-shadow:0 0 4px 0 rgba(0,0,0,0.5);box-shadow:0 0 4px 0 rgba(0,0,0,0.5);}
+#appmenu .top{background:#242b2e;border-bottom:2px solid #1d2220}
+#sidebar{position:fixed;width:206px;left:76px;top:0;bottom:0;border-radius:0 5px 5px 0;background:#8f9aaa;background-image:-o-linear-gradient(0,#8d98a8 100%,#a6b1bf 0%);background-image:-moz-linear-gradient(0,#8d98a8 100%,#a6b1bf 0%);background-image:-webkit-linear-gradient(0,#8d98a8 100%,#a6b1bf 0%);background-image:-ms-linear-gradient(0,#8d98a8 100%,#a6b1bf 0%);background-image:linear-gradient(-90deg,#8d98a8 100%,#a6b1bf 0%);-webkit-box-shadow:0 0 4px 0 rgba(0,0,0,0.5);-moz-box-shadow:0 0 4px 0 rgba(0,0,0,0.5);-ms-box-shadow:0 0 4px 0 rgba(0,0,0,0.5);-o-box-shadow:0 0 4px 0 rgba(0,0,0,0.5);box-shadow:0 0 4px 0 rgba(0,0,0,0.5);}
+#sidebar .top{background:#7f8996;border-bottom:2px solid #717c87}
+#panel{position:fixed;left:275px;right:0;top:0;bottom:0;}
+#panel .top{background:#f6f6f6;border-bottom:2px solid #e2e6ef;border-radius:0}

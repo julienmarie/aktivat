@@ -1,0 +1,20 @@
+# Version 1
+
+- ElasticSearch based
+- Redis distributed
+- Deploy aware
+- Tracks :
+  - Pages
+    - loadtime
+    - visits
+    - a/b testing
+  - Browsing events ( click, blur, etc... )
+  - User events ( signup, login, ...)
+  - Transactions
+  - Conversions
+  - Sessions
+  - Users
+- Account management
+- User management
+- Realtime feed of events
+

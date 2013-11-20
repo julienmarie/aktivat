@@ -1,0 +1,1 @@
+trackit = angular.module('trackit', [])
