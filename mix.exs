@@ -5,7 +5,7 @@ defmodule Trackr.Mixfile do
     [ 
       app: :trackr,
       version: "0.0.1",
-      elixir: "~> 0.10.2",
+      elixir: "~> 0.12.1",
       deps: deps 
     ]
   end
@@ -16,7 +16,6 @@ defmodule Trackr.Mixfile do
       mod: { Trackr, [] },
       applications: [
         :mnesia,
-        :lager,
         :yamler,
         :cowboy, 
         :exreloader, 

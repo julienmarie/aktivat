@@ -1,7 +1,7 @@
 defmodule Architecture.Server do
   use GenServer.Behaviour
 
-  defrecord State, main_connection: nil, pubsub_connection: nil, connections: [], processes: nil, nodes: nil, connected: false, rings: [], dbnodes: []
+  defrecord State, hostaddress: nil, main_connection: nil, pubsub_connection: nil, connections: [], processes: nil, nodes: nil, connected: false, rings: [], dbnodes: []
 
   @ping_delay 500
 
@@ -12,6 +12,10 @@ defmodule Architecture.Server do
 
   def reg(name, pid) do
     :gen_server.call(:architecture_server, {:register_process, name, pid, atom_to_binary(node())})
+  end
+
+  def freg(name, pid) do
+    :gen_server.call(:architecture_server, {:force_register_process, name, pid, atom_to_binary(node())})
   end
 
   def findp(name) do
@@ -26,8 +30,8 @@ defmodule Architecture.Server do
     :gen_server.cast(:architecture_server, {:add_master_db, host, port, pass, reconnect})
   end
 
-  def propagate_db(ring, node, server) do
-    :gen_server.cast(:architecture_server, {:propagate_db, ring, node, server})
+  def propagate_db(ring, node, server, used_servernames) do
+    :gen_server.cast(:architecture_server, {:propagate_db, ring, node, server, used_servernames})
   end
 
 
@@ -45,8 +49,12 @@ defmodule Architecture.Server do
   def init(_) do
     :global.register_name(binary_to_atom("architecture-server-#{atom_to_binary(node())}"), self)
     nodes = HashSet.new()
-    state = State.new(processes: HashDict.new(), nodes: HashSet.put(nodes, atom_to_binary(node())))
+    {:ok, ip } = :inet.getif 
+    {{ipa,ipb,ipc,ipd},_,_} = hd(:lists.flatten(ip))
+    {:ok, [[port]]} = :init.get_argument(:trackrport)
+    state = State.new(processes: HashDict.new(), nodes: HashSet.put(nodes, atom_to_binary(node())), hostaddress: "#{ipa}.#{ipb}.#{ipc}.#{ipd}:#{list_to_integer(port)}")
     :hash_ring.start_link
+    
     {ok, temp_config} = :yaml.load_file("config.yml", [:implicit_atoms])
     config = :erlson.from_nested_proplist( :lists.flatten(temp_config))
     case :erlson.get_value([:redis, :main], config) do
@@ -61,7 +69,6 @@ defmodule Architecture.Server do
         reconnect = :proplists.get_value(:reconnect, connectionargs)
         :gen_server.cast(:architecture_server, {:add_master_db, host, port, pass, reconnect})
     end
-    
     :erlang.send_after(@ping_delay, self(), :pingnodes)
     
     { :ok, state }
@@ -75,8 +82,8 @@ defmodule Architecture.Server do
       _ ->
             case :hash_ring.find_node(ring, key) do
               {:ok, thenode} -> :eredis.q(state.main_connection, ["SET", "trackr::ring:#{ring}::key:#{key}", thenode])
-                                {:reply, thenode, state}
-              _              -> {:reply, :error, state}
+                                {:reply, {:ok, thenode}, state}
+              _              -> {:reply, {:error, :other}, state}
             end
     
     end
@@ -87,7 +94,12 @@ defmodule Architecture.Server do
       nil -> {:reply, {:error, :nodb}, state}
       _ ->
               case :eredis.q(state.main_connection, ["GET", "trackr::ring:#{ring}::key:#{key}"]) do
-                {:ok, :undefined} ->  {:reply, {:error, :undefined}, state}
+                {:ok, :undefined} ->  case :hash_ring.find_node(ring, key) do
+                                        {:ok, thenode} -> :eredis.q(state.main_connection, ["SET", "trackr::ring:#{ring}::key:#{key}", thenode])
+                                                          {:reply, {:ok, thenode}, state}
+                                        _    ->           {:reply, {:error, :other}, state}
+                                      end
+                                      
                 {:ok, value}      ->  {:reply, {:ok, value}, state}
               end
     end
@@ -106,6 +118,15 @@ defmodule Architecture.Server do
     end  
   end
 
+  def handle_call({:force_register_process, name, pid, thenode}, _from, state) do
+    :eredis.q(state.main_connection, ["PUBLISH", "nodes", "force-register_process::#{name}"])
+      Enum.map(state.nodes, fn(othernode) -> 
+        :gen_server.cast(:global.whereis_name(binary_to_atom("architecture-server-#{othernode}")), {:add_process, name, pid, thenode}) end 
+      )
+      :eredis.q(state.main_connection, ["PUBLISH", "nodes", "force-register_process::#{name}::SUCCESS"])
+      {:reply, :ok, state.update(processes: HashDict.put(state.processes, name, {pid, thenode}))}  
+  end
+
 
   def handle_call({:find_process, name}, _from, state) do
     :eredis.q(state.main_connection, ["PUBLISH", "nodes", "find_process::#{name}"])
@@ -116,7 +137,11 @@ defmodule Architecture.Server do
       {theprocess_pid, thenode}  -> 
         isprocessalive = case thenode == atom_to_binary(node()) do
           true -> :erlang.process_info(theprocess_pid)
-          false -> :gen_server.call(:global.whereis_name(binary_to_atom("architecture-server-#{thenode}")), {:process_info, theprocess_pid})
+          false -> 
+            case :net_adm.ping binary_to_atom(thenode) do
+              :pong -> :gen_server.call(:global.whereis_name(binary_to_atom("architecture-server-#{thenode}")), {:process_info, theprocess_pid})
+              :pang -> :undefined
+            end
         end
         case  isprocessalive do
           :undefined  ->  Enum.map(state.nodes, fn(othernode) -> 
@@ -141,7 +166,7 @@ defmodule Architecture.Server do
 
   def handle_cast({:add_node, ring, thenode}, state) do
     :hash_ring.add_node(ring, thenode)
-    {:noreply, state.update(dbnodes: [{thenode, ring}| state.dbnodes])}
+    {:noreply, state.update(dbnodes: Enum.uniq([{thenode, ring}| state.dbnodes]))}
   end
 
   def handle_cast({:create_ring, ring}, state) do
@@ -156,9 +181,9 @@ defmodule Architecture.Server do
   end
 
 
-  def handle_cast({:propagate_db, ring, node, server},state) do
+  def handle_cast({:propagate_db, ring, node, server, used_servernames},state) do
     Enum.map(state.nodes, fn(othernode) -> 
-      :gen_server.cast(:global.whereis_name(binary_to_atom("architecture-server-#{othernode}")), {:receive_db, ring, node, server}) end 
+      :gen_server.cast(:global.whereis_name(binary_to_atom("architecture-server-#{othernode}")), {:receive_db, ring, node, server, List.flatten(Enum.uniq(used_servernames))}) end 
     )
    
 
@@ -166,8 +191,8 @@ defmodule Architecture.Server do
     {:noreply, state}
   end
 
-  def handle_cast({:receive_db, ring, node, server}, state) do
-    Data.Weissmuller.receive_db(ring, node, server)
+  def handle_cast({:receive_db, ring, node, server, used_servernames}, state) do
+    Data.Weissmuller.receive_db(ring, node, server, List.flatten(Enum.uniq(used_servernames)))
     {:noreply, state}
   end
 
@@ -176,8 +201,15 @@ defmodule Architecture.Server do
   end 
 
   def handle_cast({:remove_process, name}, state) do
-    {:noreply, state.update(processes: HashDict.delete(state.processes, name))}
+    Enum.map(state.nodes, fn(othernode) -> 
+      :gen_server.cast(:global.whereis_name(binary_to_atom("architecture-server-#{othernode}")), {:remove_the_process, name}) end 
+    )
+    {:noreply, state}
   end 
+
+  def handle_cast({:remove_the_process, name}, state) do
+    {:noreply, state.update(processes: HashDict.delete(state.processes, name))}
+  end
 
   def handle_cast({:add_master_db, host, port, pass, reconnect}, state) do
     subscriber = subscriber([host, port, pass, reconnect])
@@ -262,6 +294,8 @@ defmodule Architecture.Server do
   def handle_info(:pingnodes, state) do
     ping_the_guys(state.nodes)
     :erlang.send_after(@ping_delay, self(), :pingnodes)
+
+    :eredis.q(state.main_connection, ["ZADD", "aktivat-nodes-lb", "#{Enum.count(Process.list)}", "#{state.hostaddress}"])
     {:noreply, state}
   end
 

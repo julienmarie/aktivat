@@ -50,6 +50,16 @@ defmodule Data.Redis.Server do
     ]
   end
 
+
+  def handle_call({:status}, from, state) do
+    {:reply, state, state}
+  end
+
+  def handle_call({:find_id,account, property, category, item}, from, state) do
+    {:reply, find_id(account, property, category, item, state), state}
+  end
+  
+
   def handle_cast({:setup, server}, state) do
     {host, port, database, pass, reconnect} = server
     queues = :lists.merge3(:queue.to_list(state.down_queue), :queue.to_list(state.server_queue), [state.backup])
@@ -93,6 +103,38 @@ defmodule Data.Redis.Server do
                 {:noreply, state.update(server_queue: :queue.in(server, state.server_queue), down_queue: newqueue)}
     end
   end
+
+  def handle_cast({:save_event, account, property, eventname, v_userid}, state) do
+    save_event(account, property, eventname, v_userid, state)
+    {:noreply, state}
+  end
+
+  def handle_cast({:save_event_value, account, property, eventname, value, v_userid}, state) do
+    save_event_value(account, property, eventname, value, v_userid, state)
+    {:noreply, state}
+  end
+
+  
+  def handle_cast({:save_source, account, property, source_name, campaign_name, medium_name, content_name, term_name, v_userid}, state) do
+    save_source(account, property, source_name, campaign_name, medium_name, content_name, term_name, v_userid, state)
+    {:noreply, state}
+  end
+
+  def handle_cast({:save_config, account, property, platform_type, platform_name, browser_name, browser_version, resolution, v_userid}, state) do
+    save_config(account, property, platform_type, platform_name, browser_name, browser_version, resolution, v_userid, state)
+    {:noreply, state}
+  end
+
+
+  def handle_cast({:write, queries}, state) do
+    case state.master do
+      {master, _, _}  ->  :eredis.qp(master, queries)
+                          {:noreply, state}
+      nil             ->  oldqueue = :queue.to_list(state.write_queue)
+                          {:noreply, state.update(write_queue: :queue.from_list(:lists.merge(:queue.to_list(state.write_queue), queries)))}
+    end             
+  end
+
 
   def handle_info(:dbstatus, state) do
     state = check_status(state)
@@ -141,9 +183,6 @@ defmodule Data.Redis.Server do
 
 
   #CHECK SERVER STATUS
-
-
-
 
   def check_status(state) do
     master_status = check_master_status(state.master, state)
@@ -250,48 +289,10 @@ defmodule Data.Redis.Server do
 
 
 
-
-
-
-
   #SAVE API
 
 
-  def handle_call({:status}, from, state) do
-    {:reply, state, state}
-  end
-  
 
-  def handle_cast({:save_event, account, property, eventname, v_userid}, _from, state) do
-    save_event(account, property, eventname, v_userid, state)
-    {:reply, :ok, state}
-  end
-
-  def handle_cast({:save_event_value, account, property, eventname, value, v_userid}, _from, state) do
-    save_event_value(account, property, eventname, value, v_userid, state)
-    {:reply, :ok, state}
-  end
-
-  
-  def handle_cast({:save_source, account, property, source_name, campaign_name, medium_name, content_name, term_name, v_userid}, _from, state) do
-    save_source(account, property, source_name, campaign_name, medium_name, content_name, term_name, v_userid, state)
-    {:reply, :ok, state}
-  end
-
-  def handle_cast({:save_config, account, property, platform_type, platform_name, browser_name, browser_version, resolution, v_userid}, _from, state) do
-    save_config(account, property, platform_type, platform_name, browser_name, browser_version, resolution, v_userid, state)
-    {:reply, :ok, state}
-  end
-
-
-  def handle_cast({:write, queries}, state) do
-    case state.master do
-      {master, _, _}  ->  :eredis.qp(master, queries)
-                          {:noreply, state}
-      nil             ->  oldqueue = :queue.to_list(state.write_queue)
-                          {:noreply, state.update(write_queue: :queue.from_list(:lists.merge(:queue.to_list(state.write_queue), queries)))}
-    end             
-  end
 
 
 
@@ -385,11 +386,14 @@ defmodule Data.Redis.Server do
 
   def find_id(account, property, category, item, state) do
     ## HAVE TO REWRITE FOR INDEX AND COUNTER CATEGORIES
-    case :eredis.q(state.writeconnection, ["ZSCORE", "akt-tracker::#{account}::#{property}::index::#{category}", item]) do
-      {:ok, :undefined} ->  {:ok, id} = :eredis.q(state.writeconnection, ["INCR", "akt-tracker::#{account}::#{property}::counter::#{category}"])
-                            :eredis.q(state.writeconnection, ["ZADD", "akt-tracker::#{account}::#{property}::index::#{category}", id, item])
-                            {:ok, id}
-      {:ok, id} -> {:ok, id} end
+    case state.master do
+      {c,_,_} ->
+        case :eredis.q(c, ["ZSCORE", "akt-tracker::#{account}::#{property}::index::#{category}", item]) do
+          {:ok, :undefined} ->  {:ok, id} = :eredis.q(c, ["INCR", "akt-tracker::#{account}::#{property}::counter::#{category}"])
+                                :eredis.q(c, ["ZADD", "akt-tracker::#{account}::#{property}::index::#{category}", id, item])
+                                {:ok, id}
+          {:ok, id} -> {:ok, id} end
+      _ -> :noconnection end
   end
 
   def setbit(account, property, time, key, item) do

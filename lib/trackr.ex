@@ -4,7 +4,6 @@ defmodule Trackr do
   def start(_type, _args) do
     Process.register(self, :trackr_start)
     :application.start :yamler
-    :application.start :lager
     :application.start :genx
     :application.start :exreloader
     :application.start :raven
@@ -12,7 +11,13 @@ defmodule Trackr do
 
     #Configuration
 
-    {:ok, temp_config }= :yaml.load_file("config.yml", [:implicit_atoms])
+   
+    Supervisor.start_link
+    
+  end
+
+  def launch_sessions do
+     {:ok, temp_config }= :yaml.load_file("config.yml", [:implicit_atoms])
     config = :erlson.from_nested_proplist( :lists.flatten(temp_config))
 
     :application.set_env(:raven, :error_logger, :erlson.get_value([:sentry_reporting,:error_logger], config) )
@@ -67,8 +72,12 @@ defmodule Trackr do
     {:ok, _} = :cowboy.start_http(:http, 100,
                                   [port: list_to_integer(port)],
                                   [env: [dispatch: dispatch]])
-    Supervisor.start_link
-    
+
+    IO.puts "Handling incoming connection on port #{port}"
+
+    Sessions.Supervisor.start_link
+    IO.puts "Aktivat is ready"
+
   end
 
   def stop(_state) do

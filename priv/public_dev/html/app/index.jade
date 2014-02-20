@@ -1,15 +1,74 @@
-html(lang=en, ng-app='trackit')
+html(lang=en)
   head
     title= 'trackit.io'
-    script(src='../../js/components/angular/angular.min.js')
+    script(src='../../js/components/vue.js')
+    script(src='//use.typekit.net/qnu1obr.js')
     script(src='../../js/app.js')
+    script(type='text/javascript').
+      try{Typekit.load();}catch(e){}
     link(rel='stylesheet', href='../../css/app.css')
-    link(rel='stylesheet', href='../../fonts/ProximaNova-Regular/proximanova-regular.css')
+    
   body
-    div#panel
+    header
+      h1#logo Aktivat
+      .property bowtieduck
+      ul#mainnav
+        li
+          a(href="#") Analytics
+        li
+          a(href="#") Marketing
+        li
+          a(href="#") Customer Service
+        li
+          a(href="#") Automation
+      ul#rightnav
+        li
+          a(href="#") Account
+        li
+          a(href="#") Settings
+    nav#sidebar
+      ul#sidenav
+        li
+          a(href="#") All Traffic
+        li
+          a(href="#") Members
+        li
+          a(href="#") Mobile
+        li
+          a(href="#") Mobile Members
+        .separ
+        li
+          a(href="#") Overlap Analysis
+        .separ
+        li
+          a.icon.new(href="#") New Segment
+
+
+    section#panel
       .top
-        p Hello
-    div#sidebar
-      .top
-    div#appmenu
-      .top
+        ul
+          li
+            a(href="#") Overview
+          li
+            a(href="#") Sources
+          li
+            a(href="#") Conversions
+          li
+            a(href="#") Events
+          li
+            a(href="#") Retention
+          li
+            a(href="#") Revenue
+          li
+            a(href="#") Interests
+          li
+            a(href="#") Campaigns
+          li
+            a(href="#") Speed
+          li
+            a(href="#") Users
+      .title
+        h1 BowTieDuck logs
+        span.icon.timepicker
+      .content
+  

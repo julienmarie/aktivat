@@ -26,12 +26,12 @@ defmodule Trackr.TrackIt do
     trackr_host       = :proplists.get_value("hostname",qs)
 
     #Linking to server
-    case header_host == trackr_host do
+    case header_host == trackr_host do # Should validate account and host here
       true ->   server_name = "#{trackr_host}__#{account}__#{v_user}"
-                IO.puts server_name
+                IO.puts "Request arriving here :      #{server_name}"
                 case Architecture.Server.findp(server_name) do
 
-                  :not_found ->           Sessions.Server.start(Process.whereis(:sessions_supervisor),server_name, v_user,qs,ip,headers)
+                  :not_found ->           Sessions.Server.start(Process.whereis(:sessions_supervisor),server_name, v_user, account, trackr_host,  qs,ip,headers)
 
                                           :ok
 

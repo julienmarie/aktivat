@@ -2,6 +2,10 @@ defmodule Trackr.WS do
 
   def init(_transport, req, _opts, _active) do
     IO.puts "bullet init"
+    {cookie, _}      = :cowboy_req.cookie("trackit_v_visitor", req)
+    ws_server_name = "ws__#{cookie}"
+    IO.puts ws_server_name
+    :ok = Architecture.Server.freg(ws_server_name, self())
     tref = :erlang.send_after(1000, self(), :refresh)
     {:ok, req, tref}
   end
@@ -20,8 +24,8 @@ defmodule Trackr.WS do
     {:reply, datetime, req, tref}
   end
 
-  def info(_info, req, state) do
-    {:ok, req, state}
+  def info(info, req, state) do
+    {:reply, info, req, state}
   end
 
   def terminate(_req, tref) do

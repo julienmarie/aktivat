@@ -5,7 +5,7 @@ else
   NODE=$1
 fi
 if [ -z "$2" ]; then 
-  PORT="80"
+  PORT="8001"
 else
   PORT=$2
 fi
@@ -14,4 +14,4 @@ if [ -z "$3" ]; then
 else
   COOKIE=$3
 fi
-sudo iex --sname $NODE --cookie $COOKIE --erl "-gproc gproc_dist all -trackrport $PORT" -S mix
+sudo iex --sname $NODE --cookie $COOKIE --erl " -gproc gproc_dist all  -trackrport $PORT"  -S mix 

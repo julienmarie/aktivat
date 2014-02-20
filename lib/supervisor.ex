@@ -11,7 +11,7 @@ defmodule Supervisor do
       
       worker(Architecture.Supervisor, []),
       worker(Data.Supervisor, []),
-      worker(Sessions.Supervisor, []) 
+      #worker(Sessions.Supervisor, []) 
 
     ]
     supervise children, strategy: :one_for_one

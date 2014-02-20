@@ -4,7 +4,7 @@ defmodule Admin.Api do
   end
 
   def allowed_methods(req, state) do
-    {["GET", "POST"], req, state}
+    {["GET", "POST", "PUT", "DELETE"], req, state}
   end
 
   def content_types_accepted(req, state) do
@@ -27,7 +27,7 @@ defmodule Admin.Api do
 
   def get_json(req, state) do
     {:ok, _body, _req1} = :cowboy_req.body req
-    {:ok, req} = :cowboy_req.reply(200, [], [], req)
+    {:ok, req} = :cowboy_req.reply(200, ["Hello"], [], req)
     {:ok, req, state}
   end
 

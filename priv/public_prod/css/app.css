@@ -1,8 +1,24 @@
-body{font-family:ProximaNovaRegular;font-size:12px;line-height:18px}
-.top{height:50px;position:absolute;top:0;width:100%;border-radius:0 5px 0 0}
-#appmenu{width:82px;position:fixed;left:0;top:0;bottom:0;border-radius:0 5px 5px 0;background:#3c4753;background-image:-o-linear-gradient(0,#2f3741 100%,#3c4753 0%);background-image:-moz-linear-gradient(0,#2f3741 100%,#3c4753 0%);background-image:-webkit-linear-gradient(0,#2f3741 100%,#3c4753 0%);background-image:-ms-linear-gradient(0,#2f3741 100%,#3c4753 0%);background-image:linear-gradient(-90deg,#2f3741 100%,#3c4753 0%);-webkit-box-shadow:0 0 4px 0 rgba(0,0,0,0.5);-moz-box-shadow:0 0 4px 0 rgba(0,0,0,0.5);-ms-box-shadow:0 0 4px 0 rgba(0,0,0,0.5);-o-box-shadow:0 0 4px 0 rgba(0,0,0,0.5);box-shadow:0 0 4px 0 rgba(0,0,0,0.5);}
-#appmenu .top{background:#242b2e;border-bottom:2px solid #1d2220}
-#sidebar{position:fixed;width:206px;left:76px;top:0;bottom:0;border-radius:0 5px 5px 0;background:#8f9aaa;background-image:-o-linear-gradient(0,#8d98a8 100%,#a6b1bf 0%);background-image:-moz-linear-gradient(0,#8d98a8 100%,#a6b1bf 0%);background-image:-webkit-linear-gradient(0,#8d98a8 100%,#a6b1bf 0%);background-image:-ms-linear-gradient(0,#8d98a8 100%,#a6b1bf 0%);background-image:linear-gradient(-90deg,#8d98a8 100%,#a6b1bf 0%);-webkit-box-shadow:0 0 4px 0 rgba(0,0,0,0.5);-moz-box-shadow:0 0 4px 0 rgba(0,0,0,0.5);-ms-box-shadow:0 0 4px 0 rgba(0,0,0,0.5);-o-box-shadow:0 0 4px 0 rgba(0,0,0,0.5);box-shadow:0 0 4px 0 rgba(0,0,0,0.5);}
-#sidebar .top{background:#7f8996;border-bottom:2px solid #717c87}
-#panel{position:fixed;left:275px;right:0;top:0;bottom:0;}
-#panel .top{background:#f6f6f6;border-bottom:2px solid #e2e6ef;border-radius:0}
+html,body{font-family:"open-sans";font-size:12px;line-height:18px;font-weight:400;margin:0;padding:0}
+ul{list-style:none;padding:0 0 0 18px;margin:0}
+a{text-decoration:none;color:#9ea7b1}
+header{height:54px;background:#556170;margin:0;padding:0 9px;font-family:"aw-conqueror-carved-one";font-weight:400;font-size:12px;color:#fff;line-height:27px;}
+header h1#logo{font-weight:400;font-size:12px;color:#9ea7b1;margin:0;padding:0;line-height:27px;width:145px}
+header .property{width:145px;float:left}
+header #mainnav{float:left}
+header ul li{display:block;float:left;margin:0 18px 0 0;}
+header ul li a{color:#adb8c6;letter-spacing:1px}
+header #rightnav{float:right;padding:0 18px 0 0;}
+header #rightnav li{float:right;margin:0 0 0 18px;}
+header #rightnav li a{letter-spacing:1px}
+nav#sidebar{background:#f9f9f9;width:154px;position:fixed;top:54px;bottom:0;left:0;padding-top:9px;border-right:1px solid #e8ebf2;}
+nav#sidebar ul{padding-left:0;}
+nav#sidebar ul li{height:27px;}
+nav#sidebar ul li a{font-weight:600;padding-left:9px;line-height:27px}
+nav#sidebar ul .separ{background:#e8ebf2;height:1px;margin:9px 0}
+section#panel{position:fixed;left:154px;right:0;top:54px;bottom:0;padding:9px 18px;}
+section#panel .top{margin-bottom:9px;}
+section#panel .top ul{padding:0;height:27px;}
+section#panel .top ul li{height:27px;float:left;margin-right:18px;}
+section#panel .top ul li a{line-height:27px;font-family:"aw-conqueror-carved-one";letter-spacing:1px}
+section#panel .title{height:45px;}
+section#panel .title h1{font-size:36px;font-weight:300;color:#808195;line-height:45px;margin:0;padding:0}
